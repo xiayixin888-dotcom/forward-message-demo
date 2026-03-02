@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>转发消息原型</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        /* Custom scrollbar for dropdown */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans antialiased h-screen flex items-center justify-center relative overflow-hidden">
+
+    <!-- Background Simulation -->
+    <div class="absolute inset-0 bg-gray-200 flex">
+        <!-- Sidebar Simulation -->
+        <div class="w-64 bg-white border-r border-gray-200 hidden md:block">
+            <div class="h-16 flex items-center px-6 border-b border-gray-100">
+                <span class="font-bold text-gray-700">会话工作台</span>
+            </div>
+            <div class="p-4 space-y-2">
+                <div class="h-10 bg-blue-50 text-blue-600 rounded-md flex items-center px-4 font-medium">全部会话</div>
+                <div class="h-10 text-gray-600 hover:bg-gray-50 rounded-md flex items-center px-4">待跟进需求</div>
+                <div class="h-10 text-gray-600 hover:bg-gray-50 rounded-md flex items-center px-4">找房需求</div>
+            </div>
+        </div>
+        <!-- Main Content Simulation -->
+        <div class="flex-1 p-8">
+            <div class="bg-white rounded-lg shadow-sm h-full border border-gray-200 relative">
+                <div class="absolute top-4 right-4 flex space-x-2">
+                    <button class="px-3 py-1 bg-blue-50 text-blue-600 text-sm rounded border border-blue-100">转发</button>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-start space-x-3 mb-6">
+                        <div class="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0"></div>
+                        <div>
+                            <div class="font-medium text-gray-900">红红 <span class="text-green-500">●</span></div>
+                            <div class="text-xs text-gray-500">南京 | 安家大南京莹莹</div>
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <div class="bg-blue-500 text-white p-3 rounded-lg rounded-tr-none max-w-lg shadow-sm">
+                            年后不少业主心态松动，性价比好的房源多了，要不要帮您找几套100平左右的三房看看？
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div id="app" v-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300">
+        
+        <!-- Modal Content - Increased size -->
+        <div class="bg-white rounded-lg shadow-xl w-[800px] max-w-[95%] h-[600px] transform transition-all duration-300 scale-100 overflow-hidden flex flex-col">
+            
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+                <h3 class="text-lg font-medium text-gray-900">转发消息</h3>
+                <button @click="closeModal" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 flex flex-col">
+                
+                <!-- Message Preview -->
+                <div class="bg-gray-50 border border-gray-100 rounded p-4 text-gray-600 text-sm mb-6 leading-relaxed flex-shrink-0">
+                    {{ messageContent }}
+                </div>
+
+                <!-- Search & Select -->
+                <!-- Removed 'relative' from here to fix layout issue, moved to inner wrapper -->
+                <div class="flex-1 flex flex-col" ref="dropdownContainer">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">选择接收客户</label>
+                    
+                    <!-- Search Input Box Container WRAPPER for positioning -->
+                    <div class="relative">
+                        <div 
+                            class="min-h-[42px] w-full border border-gray-300 rounded-md pl-3 pr-10 py-2 bg-white flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 cursor-text relative"
+                            @click="focusInput"
+                        >
+                            <!-- Selected Tags -->
+                            <div 
+                                v-for="user in selectedUsers" 
+                                :key="user.id"
+                                class="bg-blue-50 text-blue-700 border border-blue-100 rounded px-2 py-0.5 text-sm flex items-center gap-1 animate-fadeIn"
+                            >
+                                <span>{{ user.nickname }}</span>
+                                <button @click.stop="removeUser(user)" class="text-blue-400 hover:text-blue-600 focus:outline-none">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Input Field -->
+                            <input 
+                                ref="searchInput"
+                                type="text" 
+                                v-model="searchQuery" 
+                                @keydown.enter="triggerSearch"
+                                placeholder="搜索客户昵称..." 
+                                class="flex-1 min-w-[120px] outline-none text-sm bg-transparent placeholder-gray-400"
+                            >
+                            
+                            <!-- Search Button (Inside Input) -->
+                            <button 
+                                @click.stop="triggerSearch"
+                                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 p-1.5 rounded hover:bg-gray-100 transition-colors"
+                                title="搜索"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Dropdown List - Positioned relative to the input wrapper -->
+                        <div 
+                            v-show="isDropdownOpen" 
+                            class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-80 overflow-y-auto custom-scrollbar top-full left-0"
+                        >
+                            <template v-if="filteredUsers.length > 0">
+                                <div 
+                                    v-for="user in filteredUsers" 
+                                    :key="user.id"
+                                    @click="toggleUser(user)"
+                                    class="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-center justify-between group transition-colors border-b border-gray-50 last:border-0"
+                                    :class="{'bg-blue-50': isSelected(user)}"
+                                >
+                                    <div class="flex items-center gap-3">
+                                        <!-- Avatar Placeholder -->
+                                        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm text-gray-500 font-medium flex-shrink-0">
+                                            {{ user.nickname.charAt(0) }}
+                                        </div>
+                                        
+                                        <div class="flex flex-col justify-center">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-base font-medium text-gray-900" :class="{'text-blue-700': isSelected(user)}">
+                                                    {{ user.nickname }}
+                                                </span>
+                                                
+                                                <!-- Role Badge (No text prefix) -->
+                                                <span v-if="user.receptionist" 
+                                                    class="px-2 py-0.5 rounded text-xs font-medium border"
+                                                    :class="getRoleBadgeClass(user.receptionist)"
+                                                >
+                                                    {{ user.receptionist }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Checkmark -->
+                                    <div v-if="isSelected(user)" class="text-blue-600">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <!-- Empty State -->
+                            <div 
+                                v-else
+                                class="p-8 text-center text-gray-500 text-sm flex flex-col items-center justify-center h-40"
+                            >
+                                <svg class="w-10 h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                                未找到匹配用户
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-2 text-xs text-gray-400 flex justify-between items-center">
+                        <span>已选择 {{ selectedUsers.length }} 位客户</span>
+                        <span v-if="selectedUsers.length > 0" class="cursor-pointer text-blue-500 hover:underline" @click="selectedUsers = []">清空选择</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 border-t border-gray-100 flex justify-end space-x-3 bg-gray-50 flex-shrink-0">
+                <button 
+                    @click="closeModal"
+                    class="px-4 py-2 bg-white border border-gray-300 rounded text-gray-700 text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-colors"
+                >
+                    取消
+                </button>
+                <button 
+                    @click="confirmForward"
+                    :disabled="selectedUsers.length === 0"
+                    class="px-4 py-2 bg-blue-600 border border-transparent rounded text-white text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                >
+                    确认转发
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+
+        createApp({
+            setup() {
+                // Mock Data
+                const messageContent = ref("年后不少业主心态松动，性价比好的房源多了，要不要帮您找几套100平左右的三房看看？");
+                
+                // Helper to generate mock users
+                const generateUsers = () => {
+                    const roles = ["AI", "运营", "小B", "专家", null];
+                    const users = [];
+                    let idCounter = 1;
+
+                    // 15 Zhangs
+                    const zhangNames = ["张伟", "张敏", "张强", "张静", "张磊", "张洋", "张勇", "张丽", "张洁", "张超", "张军", "张平", "张华", "张明", "张燕"];
+                    zhangNames.forEach(name => {
+                        users.push({
+                            id: idCounter++,
+                            nickname: name,
+                            receptionist: roles[Math.floor(Math.random() * roles.length)]
+                        });
+                    });
+
+                    // 15 Lis
+                    const liNames = ["李强", "李娜", "李静", "李伟", "李敏", "李军", "李磊", "李洋", "李艳", "李杰", "李鹏", "李华", "李刚", "李平", "李霞"];
+                    liNames.forEach(name => {
+                        users.push({
+                            id: idCounter++,
+                            nickname: name,
+                            receptionist: roles[Math.floor(Math.random() * roles.length)]
+                        });
+                    });
+
+                    // Others
+                    const otherNames = ["王五", "赵六", "钱七", "孙八", "周九", "吴十", "郑十一", "冯十二"];
+                    otherNames.forEach(name => {
+                        users.push({
+                            id: idCounter++,
+                            nickname: name,
+                            receptionist: roles[Math.floor(Math.random() * roles.length)]
+                        });
+                    });
+
+                    return users;
+                };
+
+                const allUsers = generateUsers();
+
+                const searchQuery = ref("");
+                const selectedUsers = ref([]);
+                const isDropdownOpen = ref(false);
+                const searchInput = ref(null);
+                const dropdownContainer = ref(null);
+                const searchPerformed = ref(false); // Track if search was performed
+
+                // Filter users based on search query
+                const filteredUsers = computed(() => {
+                    const query = searchQuery.value.trim().toLowerCase();
+                    // If no search performed yet, maybe show nothing? Or show recent?
+                    // User requirement: "Click search icon -> Show list"
+                    // If we want to show all when search is clicked with empty query:
+                    if (!query) return allUsers;
+                    
+                    return allUsers.filter(user => 
+                        user.nickname.toLowerCase().includes(query)
+                    );
+                });
+
+                const focusInput = () => {
+                    searchInput.value.focus();
+                    // Do NOT open dropdown on focus anymore
+                    // isDropdownOpen.value = true; 
+                };
+
+                const triggerSearch = () => {
+                    // Always open dropdown on search trigger
+                    isDropdownOpen.value = true;
+                    searchPerformed.value = true;
+                    console.log("Search triggered for:", searchQuery.value);
+                };
+
+                const isSelected = (user) => {
+                    return selectedUsers.value.some(u => u.id === user.id);
+                };
+
+                const toggleUser = (user) => {
+                    if (isSelected(user)) {
+                        removeUser(user);
+                    } else {
+                        selectedUsers.value.push(user);
+                        // Do NOT clear search query to keep the list context
+                        // searchQuery.value = ""; 
+                        searchInput.value.focus(); // Keep focus
+                    }
+                };
+
+                const removeUser = (user) => {
+                    selectedUsers.value = selectedUsers.value.filter(u => u.id !== user.id);
+                };
+
+                const closeModal = () => {
+                    alert("模拟关闭弹窗");
+                };
+
+                const confirmForward = () => {
+                    if (selectedUsers.value.length === 0) return;
+                    const names = selectedUsers.value.map(u => u.nickname).join(", ");
+                    alert(`模拟转发成功！\n已发送给 ${selectedUsers.value.length} 位用户：\n${names}`);
+                    // Reset
+                    selectedUsers.value = [];
+                    searchQuery.value = "";
+                    isDropdownOpen.value = false;
+                    searchPerformed.value = false;
+                };
+
+                // Click outside to close dropdown
+                const handleClickOutside = (event) => {
+                    if (dropdownContainer.value && !dropdownContainer.value.contains(event.target)) {
+                        isDropdownOpen.value = false;
+                    }
+                };
+
+                const getRoleBadgeClass = (role) => {
+                    switch (role) {
+                        case 'AI': return 'bg-purple-50 text-purple-600 border-purple-200';
+                        case '运营': return 'bg-blue-50 text-blue-600 border-blue-200';
+                        case '小B': return 'bg-orange-50 text-orange-600 border-orange-200';
+                        case '专家': return 'bg-green-50 text-green-600 border-green-200';
+                        default: return 'bg-gray-50 text-gray-600 border-gray-200';
+                    }
+                };
+
+                onMounted(() => {
+                    document.addEventListener('click', handleClickOutside);
+                });
+
+                onUnmounted(() => {
+                    document.removeEventListener('click', handleClickOutside);
+                });
+
+                return {
+                    messageContent,
+                    searchQuery,
+                    selectedUsers,
+                    isDropdownOpen,
+                    filteredUsers,
+                    searchInput,
+                    dropdownContainer,
+                    focusInput,
+                    triggerSearch,
+                    isSelected,
+                    toggleUser,
+                    removeUser,
+                    closeModal,
+                    confirmForward,
+                    getRoleBadgeClass
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

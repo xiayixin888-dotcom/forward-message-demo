@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>群聊页面原型 - 包含群档案与详情</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Phosphor Icons for better UI icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        [v-cloak] { display: none; }
+        
+        /* Card hover effects */
+        .hover-card {
+            transition: all 0.2s ease;
+        }
+        .hover-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans antialiased h-screen overflow-hidden">
+    <div id="app" v-cloak class="h-full flex">
+        
+        <!-- Left Sidebar: Conversations (Simulated) -->
+        <div class="w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col">
+            <div class="h-14 flex items-center px-4 border-b border-gray-100">
+                <span class="font-bold text-gray-700">会话分组</span>
+            </div>
+            <div class="p-2 space-y-1 overflow-y-auto custom-scrollbar flex-1">
+                <!-- Active Conversation -->
+                <div class="p-3 bg-blue-50 rounded-lg cursor-pointer border-l-4 border-blue-500">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="font-medium text-gray-900 truncate">A02.10向荣选房沟通群</span>
+                        <span class="text-xs text-gray-400">12:12</span>
+                    </div>
+                    <div class="text-xs text-gray-500 truncate">许德海: 好的</div>
+                </div>
+                <!-- Other Conversations -->
+                <div class="p-3 hover:bg-gray-50 rounded-lg cursor-pointer border-l-4 border-transparent">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="font-medium text-gray-900 truncate">A03.02嘉东东选房沟通群</span>
+                        <span class="text-xs text-gray-400">15:21</span>
+                    </div>
+                    <div class="text-xs text-gray-500 truncate">张超: 什么时候有时间看...</div>
+                </div>
+                <div class="p-3 hover:bg-gray-50 rounded-lg cursor-pointer border-l-4 border-transparent">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="font-medium text-gray-900 truncate">A03.02wdj (选房沟通群)</span>
+                        <span class="text-xs text-gray-400">15:20</span>
+                    </div>
+                    <div class="text-xs text-gray-500 truncate">小程序消息...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle: Chat Area (Simulated) -->
+        <div class="flex-1 flex flex-col bg-gray-50 relative">
+            <!-- Header -->
+            <div class="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm z-10">
+                <div>
+                    <h2 class="font-medium text-gray-800">A02.10向荣选房沟通群 <span class="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded ml-2">交付群</span></h2>
+                    <div class="text-xs text-gray-500 mt-0.5">合肥 | 群主: 淘房时一 | 3人 | 服务客户: 向荣</div>
+                </div>
+                <div class="flex space-x-3 text-gray-500">
+                    <i class="ph ph-magnifying-glass text-xl cursor-pointer hover:text-gray-700"></i>
+                    <i class="ph ph-dots-three-circle text-xl cursor-pointer hover:text-gray-700"></i>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-6">
+                <!-- System Message -->
+                <div class="flex justify-center">
+                    <span class="text-xs text-gray-400 bg-gray-200 px-2 py-1 rounded">2026-03-02 11:23:02</span>
+                </div>
+                
+                <!-- Agent Message -->
+                <div class="flex items-start space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs flex-shrink-0">淘房</div>
+                    <div>
+                        <div class="text-xs text-gray-500 mb-1">淘房时一 @365淘房 【运营-陈星】</div>
+                        <div class="bg-white border border-gray-200 p-3 rounded-lg rounded-tl-none shadow-sm max-w-md text-sm text-gray-700">
+                            @向荣 您好，节后市场启动，有不少新的性价比房源，要不让经纪人老师根据您最新的想法，重新给您严选2-3套性价比最高的，约个时间一起看看？
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Message -->
+                <div class="flex items-start justify-end space-x-3">
+                    <div>
+                        <div class="text-xs text-gray-500 mb-1 text-right">向荣</div>
+                        <div class="bg-blue-500 text-white p-3 rounded-lg rounded-tr-none shadow-sm max-w-md text-sm">
+                            发两群里先看一下
+                        </div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xs flex-shrink-0">向荣</div>
+                </div>
+                
+                <!-- Agent Message 2 -->
+                <div class="flex items-start space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold text-xs flex-shrink-0">许德海</div>
+                    <div>
+                        <div class="text-xs text-gray-500 mb-1">许德海</div>
+                        <div class="bg-white border border-gray-200 p-3 rounded-lg rounded-tl-none shadow-sm max-w-md text-sm text-gray-700">
+                            好的
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="h-32 bg-white border-t border-gray-200 p-4">
+                <div class="flex items-center space-x-4 text-gray-400 mb-2">
+                    <i class="ph ph-image text-xl cursor-pointer hover:text-gray-600"></i>
+                    <i class="ph ph-folder text-xl cursor-pointer hover:text-gray-600"></i>
+                    <i class="ph ph-smiley text-xl cursor-pointer hover:text-gray-600"></i>
+                </div>
+                <textarea class="w-full h-12 resize-none outline-none text-sm" placeholder="请输入消息..."></textarea>
+                <div class="flex justify-between items-center mt-1">
+                     <span class="text-xs text-gray-400">选择发送消息的客服账号 v</span>
+                     <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded text-sm transition-colors">发送</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar: Tools & Details -->
+        <div class="w-[350px] bg-white border-l border-gray-200 flex flex-col flex-shrink-0 shadow-lg z-20">
+            <!-- Tabs Header -->
+            <div class="flex border-b border-gray-200 bg-gray-50">
+                <button 
+                    v-for="tab in tabs" 
+                    :key="tab.id"
+                    @click="currentTab = tab.id"
+                    class="flex-1 py-3 text-sm font-medium transition-colors relative"
+                    :class="currentTab === tab.id ? 'text-blue-600 bg-white' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'"
+                >
+                    {{ tab.name }}
+                    <div v-if="currentTab === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-4 bg-gray-50">
+                
+                <!-- Tab: 群档案 (Group Profile) -->
+                <div v-if="currentTab === 'groupProfile'" class="space-y-4">
+                    <!-- Global Refresh for Group Profile -->
+                    <div class="flex justify-end">
+                        <button class="text-xs text-gray-400 hover:text-gray-600 flex items-center space-x-1">
+                            <i class="ph ph-arrows-clockwise"></i>
+                            <span>刷新档案</span>
+                        </button>
+                    </div>
+
+                    <!-- Section 1: Summary -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-gray-800 text-sm">群聊总结</h3>
+                            <!-- Removed Edit button -->
+                        </div>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            客户目前关注金茂府周边的三房户型，预算在300-500万之间。对周边学区比较在意，最近一次看房反馈良好，正在等待新的性价比房源。
+                        </p>
+                    </div>
+
+                    <!-- Section 2: Purchase Parameters (Customer Persona style) -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                         <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-gray-800 text-sm">购房参数</h3>
+                            <!-- Removed individual refresh button -->
+                        </div>
+                        <div class="space-y-3">
+                            <div class="bg-gray-50 p-3 rounded border border-gray-100">
+                                <div class="text-xs text-gray-400 mb-1">意向区域</div>
+                                <div class="font-medium text-gray-800 text-sm">金茂府附近</div>
+                                <div class="text-[10px] text-gray-400 mt-1 text-right">2026-02-28 13:34:21</div>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded border border-gray-100">
+                                <div class="text-xs text-gray-400 mb-1">意向房型/户型</div>
+                                <div class="font-medium text-gray-800 text-sm">三房</div>
+                                <div class="text-[10px] text-gray-400 mt-1 text-right">2026-02-28 13:34:21</div>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded border border-gray-100">
+                                <div class="text-xs text-gray-400 mb-1">预算范围</div>
+                                <div class="font-medium text-gray-800 text-sm">300-500万</div>
+                                <div class="text-[10px] text-gray-400 mt-1 text-right">2026-02-28 13:34:21</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Operation Suggestions -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                        <h3 class="font-bold text-gray-800 text-sm mb-3 border-l-4 border-orange-400 pl-2">运营跟进建议</h3>
+                        <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                            <li>跟进客户上周末看房反馈。</li>
+                            <li>确认客户是否接受稍微远一点但性价比高的房源。</li>
+                        </ul>
+                    </div>
+
+                    <!-- Section 4: Agent Suggestions -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                        <h3 class="font-bold text-gray-800 text-sm mb-3 border-l-4 border-blue-400 pl-2">经纪人跟进建议</h3>
+                        <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                            <li>推荐金茂府二期的新上房源。</li>
+                            <li>准备几套学区房的对比资料。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Tab: 群详情 (Group Details) -->
+                <div v-if="currentTab === 'groupDetails'" class="space-y-4">
+                     <!-- Group Info (Merged IDs here) -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                        <h3 class="font-bold text-gray-800 text-sm mb-3">群基本信息</h3>
+                        <div class="space-y-3">
+                            <!-- New IDs Merged Here -->
+                            <div class="flex justify-between items-center group">
+                                <span class="text-xs text-gray-500 w-24">客户788ID</span>
+                                <div class="flex items-center flex-1 justify-end space-x-2">
+                                    <span class="text-sm font-mono text-gray-700 bg-gray-50 px-1.5 py-0.5 rounded">7881301985381841</span>
+                                    <button @click="copyToClipboard('7881301985381841')" class="text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" title="复制">
+                                        <i class="ph ph-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center group">
+                                <span class="text-xs text-gray-500 w-24">群主1688ID</span>
+                                <div class="flex items-center flex-1 justify-end space-x-2">
+                                    <span class="text-sm font-mono text-gray-700 bg-gray-50 px-1.5 py-0.5 rounded">1688857279695705</span>
+                                    <button @click="copyToClipboard('1688857279695705')" class="text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" title="复制">
+                                        <i class="ph ph-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center group">
+                                <span class="text-xs text-gray-500 w-24">经纪人788ID</span>
+                                <div class="flex items-center flex-1 justify-end space-x-2">
+                                    <span class="text-sm font-mono text-gray-700 bg-gray-50 px-1.5 py-0.5 rounded">7889928374651029</span>
+                                    <button @click="copyToClipboard('7889928374651029')" class="text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" title="复制">
+                                        <i class="ph ph-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="h-px bg-gray-100 my-2"></div>
+
+                             <div class="flex justify-between items-center group">
+                                <span class="text-xs text-gray-500">企微群ID</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-700 truncate max-w-[150px]" title="wrs7amDQAAvJeoSaU...">wrs7amDQAAvJeoSaU...</span>
+                                    <button @click="copyToClipboard('wrs7amDQAAvJeoSaU...')" class="text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                         <i class="ph ph-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center group">
+                                <span class="text-xs text-gray-500">光年群ID</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-700">10837724381419822</span>
+                                    <button @click="copyToClipboard('10837724381419822')" class="text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                         <i class="ph ph-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-gray-500">群类型</span>
+                                <span class="text-sm text-gray-700">交付群</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-gray-500">创建时间</span>
+                                <span class="text-sm text-gray-700">2026-02-10 15:17:45</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Members List -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-gray-800 text-sm">群成员 (3)</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">淘</div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium text-gray-800">淘房时一 <span class="text-[10px] bg-yellow-100 text-yellow-700 px-1 rounded ml-1">群主</span></div>
+                                    <div class="text-xs text-gray-400">运营-陈星</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xs font-bold">向</div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium text-gray-800">向荣</div>
+                                    <div class="text-xs text-gray-400">客户</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold">许</div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium text-gray-800">许德海</div>
+                                    <div class="text-xs text-gray-400">经纪人</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: 客户档案 (Customer Profile) -->
+                <div v-if="currentTab === 'customerProfile'" class="space-y-4">
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                        <!-- Removed Title 'Customer Persona' -->
+                        
+                        <!-- Full Profile Tags -->
+                        <div class="space-y-4">
+                             <div class="bg-gray-50 p-3 rounded border border-gray-100 hover-card cursor-default">
+                                <div class="flex justify-between items-start">
+                                    <div class="text-xs text-gray-500">意向区域</div>
+                                    <span class="text-[10px] text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded">既定</span>
+                                </div>
+                                <div class="font-medium text-gray-800 text-sm mt-1">金茂府附近</div>
+                                <div class="text-[10px] text-gray-400 mt-2 text-right">2026-02-28 13:34:21</div>
+                            </div>
+
+                            <div class="bg-gray-50 p-3 rounded border border-gray-100 hover-card cursor-default">
+                                <div class="flex justify-between items-start">
+                                    <div class="text-xs text-gray-500">意向房型/户型</div>
+                                    <span class="text-[10px] text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded">既定</span>
+                                </div>
+                                <div class="font-medium text-gray-800 text-sm mt-1">三房</div>
+                                <div class="text-[10px] text-gray-400 mt-2 text-right">2026-02-28 13:34:21</div>
+                            </div>
+
+                            <div class="bg-gray-50 p-3 rounded border border-gray-100 hover-card cursor-default">
+                                <div class="flex justify-between items-start">
+                                    <div class="text-xs text-gray-500">订阅行为</div>
+                                    <span class="text-[10px] text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded">动态</span>
+                                </div>
+                                <div class="font-medium text-gray-800 text-sm mt-1">是</div>
+                                <div class="text-[10px] text-gray-400 mt-2 text-right">2026-02-28 13:34:21</div>
+                            </div>
+                            
+                            <div class="bg-gray-50 p-3 rounded border border-gray-100 hover-card cursor-default">
+                                <div class="flex justify-between items-start">
+                                    <div class="text-xs text-gray-500">目前主要活动范围</div>
+                                    <span class="text-[10px] text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded">动态</span>
+                                </div>
+                                <div class="font-medium text-gray-800 text-sm mt-1">居住地点: 金茂府</div>
+                                <div class="text-[10px] text-gray-400 mt-2 text-right">2026-02-28 13:34:21</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Placeholders for other tabs -->
+                <div v-if="currentTab === 'quickReply'" class="flex flex-col items-center justify-center h-64 text-gray-400">
+                    <i class="ph ph-chat-text text-4xl mb-2"></i>
+                    <p class="text-sm">快捷话术内容...</p>
+                </div>
+                <div v-if="currentTab === 'chatHistory'" class="flex flex-col items-center justify-center h-64 text-gray-400">
+                    <i class="ph ph-clock-counter-clockwise text-4xl mb-2"></i>
+                    <p class="text-sm">历史聊天记录...</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div v-if="showToast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg text-sm transition-opacity duration-300 z-50">
+            {{ toastMessage }}
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+
+        createApp({
+            setup() {
+                // Tab Configuration
+                const tabs = [
+                    { id: 'groupProfile', name: '群档案' },
+                    { id: 'groupDetails', name: '群详情' },
+                    { id: 'customerProfile', name: '客户档案' },
+                    { id: 'quickReply', name: '快捷话术' },
+                    // { id: 'chatHistory', name: '聊天记录' } // Hidden to save space or added if needed
+                ];
+                
+                const currentTab = ref('groupProfile');
+                const showToast = ref(false);
+                const toastMessage = ref('');
+
+                const copyToClipboard = (text) => {
+                    navigator.clipboard.writeText(text).then(() => {
+                        toastMessage.value = '复制成功: ' + text;
+                        showToast.value = true;
+                        setTimeout(() => {
+                            showToast.value = false;
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('无法复制文本: ', err);
+                        toastMessage.value = '复制失败';
+                        showToast.value = true;
+                        setTimeout(() => {
+                            showToast.value = false;
+                        }, 2000);
+                    });
+                };
+
+                return {
+                    tabs,
+                    currentTab,
+                    copyToClipboard,
+                    showToast,
+                    toastMessage
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
